@@ -1,23 +1,18 @@
-import os
-from dotenv import load_dotenv
 from neo4j import GraphDatabase
+from core.config import settings
 
-load_dotenv()
 
-uri = os.getenv("NEO4J_URI").strip()
-username = os.getenv("NEO4J_USERNAME").strip()
-password = os.getenv("NEO4J_PASSWORD").strip()
-database = os.getenv("NEO4J_DATABASE").strip()
+class Neo4jConnection:
 
-driver = GraphDatabase.driver(uri, auth=(username, password))
+    def __init__(self):
+        self.driver = GraphDatabase.driver(
+            settings.neo4j_uri,
+            auth=(settings.neo4j_user, settings.neo4j_password)
+        )
 
-def check_connection():
-    try:
-        driver.verify_connectivity()
-        print("Connected to Neo4j successfully.")
-        return True
-    except Exception as e:
-        print(f"Connection failed: {e}")
-        return False
-    finally:
-        driver.close()
+    def close(self):
+        self.driver.close()
+
+    def execute(self, query: str, parameters: dict | None = None):
+        with self.driver.session(database=settings.neo4j_db) as session:
+            session.run(query, parameters or {})

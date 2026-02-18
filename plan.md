@@ -2,136 +2,86 @@
 
 **Purpose:** Build graph and Cypher skills, then add NL→Cypher (Groq), then hybrid graph+vector. No shortcuts — proper engineering, interview-worthy.
 
-**Dataset:** MovieLens small (movies, ratings; optionally tags, links later).  
-*If switching to HR dataset, schema design will be analogous.*
+**Dataset:** Custom movie dataset (`movie.csv`) — movie metadata with movie_id, movie_name, year, overview, director, genre (comma-separated), cast (comma-separated).  
+*No user ratings; graph is movie–genre–person (directors/actors).*
 
 ---
 
-## Phase 1 — No LLM (Pure Graph Foundation)
+## Phase 1 — No LLM (Pure Graph Foundation) ✅ Implemented
 
 **Goal:** Understand graph modeling, learn Cypher, think in relationships, build something interview-worthy.
 
+**Phase 1 implementation:** Python ingest pipeline; Neo4j; movie dataset with Movie, Genre, Person (directors/actors).
+
 ### Step 0 — Setup Environment
 
-- [ ] **Install Neo4j**
-  - Option A: [Neo4j Desktop](https://neo4j.com/download/) (easiest for beginner)
-  - Option B: Docker (better for backend mindset):
-
-    ```bash
-    docker run --name neo4j-movies -p7474:7474 -p7687:7687 -e NEO4J_AUTH=neo4j/password neo4j:latest
-    ```
-
+- [x] **Install Neo4j** (Desktop or Docker)
+- [x] **Python env:** `phase1/requirements.txt` (neo4j, pandas, pydantic, pydantic-settings)
+- [x] **Config:** `.env` with `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DB` (see `.example.env`)
 - [ ] Open Neo4j Browser: `http://localhost:7474`
 
-### Step 1 — Download Dataset
+### Step 1 — Dataset
 
-- [ ] Get [MovieLens small](https://grouplens.org/datasets/movielens/) from GroupLens Research
-- [ ] Use at minimum: `movies.csv`, `ratings.csv`  
-  *(Optional later: tags.csv, links.csv)*
+- [x] **Used:** Custom movie dataset — `phase1/data/movie.csv`
+- **Columns:** `movie_id`, `movie_name`, `year`, `overview`, `director`, `genre` (comma-separated), `cast` (comma-separated)
 
-### Step 2 — Understand Raw CSV Structure
+### Step 2 — Graph Schema (as implemented)
 
-**Core entities (answer before importing):**
-
-- **movies.csv:** `movieId`, `title`, `genres` (pipe-separated)
-- **ratings.csv:** `userId`, `movieId`, `rating`, `timestamp`
-
-### Step 3 — Design Graph Schema
-
-**Nodes:** `User`, `Movie`, `Genre`  
-**Relationships:** `User -[:RATED]-> Movie`, `Movie -[:HAS_GENRE]-> Genre`
+**Nodes:** `Movie` (movie_id, name, year, overview), `Genre` (name), `Person` (name — used for directors and actors)  
+**Relationships:** `Movie -[:HAS_GENRE]-> Genre`, `Person -[:DIRECTED]-> Movie`, `Person -[:ACTED_IN]-> Movie`
 
 *Graph schema = meaning (entities + relationships), not columns/tables.*
 
-### Step 4 — Prepare Data for Import
+### Step 3 — Code Structure
 
-- [ ] Place CSVs in Neo4j import folder  
-  Docker:  
-  `docker cp movies.csv neo4j-movies:/var/lib/neo4j/import/`  
-  `docker cp ratings.csv neo4j-movies:/var/lib/neo4j/import/`
+- [x] **core/config.py** — Settings from `.env` (Neo4j URI, user, password, db)
+- [x] **db/connection.py** — `Neo4jConnection` (execute Cypher with params)
+- [x] **models/movie.py** — `MovieModel` (Pydantic) for validation (movie_id, movie_name, year, overview, director, genre[], cast[])
+- [x] **graph/schema.py** — Cypher: constraints, CREATE_MOVIE, CREATE_GENRE_REL, CREATE_DIRECTOR_REL, CREATE_ACTOR_REL
+- [x] **ingest/load_data.py** — Read CSV, validate rows, create constraints, then for each row: create Movie, HAS_GENRE, DIRECTED, ACTED_IN
+- [x] **main.py** — Entry: `ingest_movies(path_to_movie.csv)`
 
-### Step 5 — Import Movies
+### Step 4 — Run Ingest
 
-- [ ] In Neo4j Browser, run:
+- [ ] From `phase1/code`: set `.env`, then run:  
+  `python main.py` (uses `phase1/data/movie.csv` by default in main)
+- [ ] Verify: In Neo4j Browser — `MATCH (n) RETURN labels(n), count(n);` and `MATCH ()-[r]->() RETURN type(r), count(r);`
 
-  ```cypher
-  LOAD CSV WITH HEADERS FROM 'file:///movies.csv' AS row
-  MERGE (m:Movie {movieId: toInteger(row.movieId)})
-  SET m.title = row.title
-  ```
+### Step 5 — Constraints (in code)
 
-- [ ] Verify: `MATCH (m:Movie) RETURN count(m);`
+- [x] **Implemented in schema.py:**  
+  `Movie.movie_id` UNIQUE, `Person.name` UNIQUE, `Genre.name` UNIQUE  
+  (Created at start of ingest.)
 
-### Step 6 — Create Genres
-
-- [ ] Split pipe-separated genres and link to movies:
-
-  ```cypher
-  LOAD CSV WITH HEADERS FROM 'file:///movies.csv' AS row
-  WITH row, split(row.genres, "|") AS genres
-  MATCH (m:Movie {movieId: toInteger(row.movieId)})
-  UNWIND genres AS genre
-  MERGE (g:Genre {name: genre})
-  MERGE (m)-[:HAS_GENRE]->(g);
-  ```
-
-- [ ] Test: `MATCH (g:Genre) RETURN g;`
-
-### Step 7 — Import Users + Ratings
-
-- [ ] Run:
-
-  ```cypher
-  LOAD CSV WITH HEADERS FROM 'file:///ratings.csv' AS row
-  MERGE (u:User {userId: toInteger(row.userId)})
-  MERGE (m:Movie {movieId: toInteger(row.movieId)})
-  MERGE (u)-[r:RATED]->(m)
-  SET r.rating = toFloat(row.rating);
-  ```
-
-### Step 8 — Explore the Graph
+### Step 6 — Explore & Write Cypher Queries
 
 - [ ] Count nodes: `MATCH (n) RETURN labels(n), count(n);`
 - [ ] Count relationships: `MATCH ()-[r]->() RETURN type(r), count(r);`
-
-### Step 9 — Write Real Cypher Queries (Critical)
-
-- [ ] **Top rated movies:**  
-  `MATCH (u:User)-[r:RATED]->(m:Movie) RETURN m.title, avg(r.rating) AS avgRating ORDER BY avgRating DESC LIMIT 10;`
-- [ ] **Users who like same movies (multi-hop):**  
-  `MATCH (u1:User)-[:RATED]->(m:Movie)<-[:RATED]-(u2:User) WHERE u1.userId = 1 AND u1 <> u2 RETURN u2.userId, count(m) AS commonMovies ORDER BY commonMovies DESC;`
-- [ ] **Recommend movies (graph-based):**  
-  `MATCH (u:User {userId: 1})-[:RATED]->(m1:Movie) MATCH (m1)<-[:RATED]-(other:User)-[:RATED]->(m2:Movie) WHERE NOT (u)-[:RATED]->(m2) RETURN m2.title, count(*) AS score ORDER BY score DESC LIMIT 5;`
-- [ ] **Target:** 10–15 Cypher queries; practice recommendation logic
-
-### Step 10 — Add Constraints (Professional)
-
-- [ ] Run:
-
-  ```cypher
-  CREATE CONSTRAINT user_unique IF NOT EXISTS FOR (u:User) REQUIRE u.userId IS UNIQUE;
-  CREATE CONSTRAINT movie_unique IF NOT EXISTS FOR (m:Movie) REQUIRE m.movieId IS UNIQUE;
-  ```
+- [ ] **Example queries (movie-metadata graph):**
+  - Movies by genre: `MATCH (m:Movie)-[:HAS_GENRE]->(g:Genre {name: "Drama"}) RETURN m.name;`
+  - Movies by director: `MATCH (p:Person)-[:DIRECTED]->(m:Movie) WHERE p.name = $name RETURN m.name;`
+  - Co-actors: `MATCH (a:Person)-[:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(b:Person) WHERE a.name = $name AND a <> b RETURN b.name, count(m) ORDER BY count(m) DESC;`
+- [ ] **Target:** 10–15 Cypher queries (traversal, filters, aggregates)
 
 ### Phase 1 Deliverables
 
-- [ ] Neo4j running with MovieLens data loaded
-- [ ] Schema: User, Movie, Genre + RATED, HAS_GENRE
-- [ ] 10–15 Cypher queries (incl. top rated, similar users, recommendations)
-- [ ] Constraints on `User.userId` and `Movie.movieId`
-- [ ] README documenting setup, schema, and example queries
+- [x] Neo4j + Python ingest pipeline; movie data loaded from `movie.csv`
+- [x] Schema: Movie, Genre, Person + HAS_GENRE, DIRECTED, ACTED_IN
+- [x] Constraints: Movie.movie_id, Person.name, Genre.name
+- [ ] 10–15 Cypher queries (by genre, director, cast, co-actors, etc.)
+- [ ] README: setup (.env, run main.py), schema, example queries
 
 ### Phase 1 — DO NOT
 
 - No Groq / no LLM
 - No PDFs, no vector DB
-- First master Cypher
+- First master Cypher on this schema
 
 ### Suggested Timeline (Phase 1)
 
-- **Day 1:** Setup + dataset + import (Steps 0–7)
-- **Day 2:** Explore graph + write 15 Cypher queries + recommendation logic (Steps 8–9)
-- **Day 3:** Constraints, clean-up, export README (Step 10 + docs)
+- **Day 1:** Setup + dataset + ingest code (Steps 0–4)
+- **Day 2:** Explore graph + write 10–15 Cypher queries (Step 6)
+- **Day 3:** Clean-up, README (Step 6 + docs)
 
 ---
 
@@ -163,10 +113,11 @@
 
 By end of Phase 1 you should be able to:
 
-- Model entities and relationships in graph terms
-- Traverse the graph (single and multi-hop)
-- Aggregate over paths (avg, count, recommendations)
+- Model entities and relationships in graph terms (Movie, Genre, Person; HAS_GENRE, DIRECTED, ACTED_IN)
+- Run the Python ingest pipeline and load movie data into Neo4j
+- Traverse the graph (single and multi-hop: e.g. movies by genre, by director, co-actors)
+- Aggregate over paths (count, top directors, etc.)
 - Explain how graph thinking differs from SQL
-- Confidently write 10–15 Cypher queries
+- Confidently write 10–15 Cypher queries on the movie graph
 
 Then proceed to Phase 2 (NL → Cypher with Groq).
