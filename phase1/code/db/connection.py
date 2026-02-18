@@ -16,3 +16,8 @@ class Neo4jConnection:
     def execute(self, query: str, parameters: dict | None = None):
         with self.driver.session(database=settings.neo4j_db) as session:
             session.run(query, parameters or {})
+    
+    def execute_query(self, query: str, parameters: dict | None = None):
+        with self.driver.session(database=settings.neo4j_db) as session:
+            result = session.run(query, parameters or {})
+            return list(result) 
