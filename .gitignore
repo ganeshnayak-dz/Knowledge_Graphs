@@ -1,0 +1,62 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env/
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Environment Variables and Settings
+*.env
+
+# Editor and system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Python egg stuff
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+bin/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+pip-wheel-metadata/
+*.manifest
+
+# Neo4j files and import/data folders (could be phase-specific, e.g. phase1/import/)
+*.db
+*.db-journal
+*.neo4j
+import/
+data/
+logs/
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Test output
+htmlcov/
+.tox/
+.coverage
+.cache
+.pytest_cache/
+
+# Mac & miscellaneous
+*.swp
+*~
+# End Generation Here
