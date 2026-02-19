@@ -43,7 +43,7 @@ pip-wheel-metadata/
 *.db-journal
 *.neo4j
 import/
-data/
+
 logs/
 
 # Jupyter Notebooks checkpoints

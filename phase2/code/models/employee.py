@@ -10,9 +10,9 @@ class EmployeeModel(BaseModel):
     project_completed:int
     productivity:float
     satisfaction_rate:float
-    feedback_score:int
+    feedback_score: float
     department:str
-    postion:str
+    position:str
     joining_date:str
     salary:int
    

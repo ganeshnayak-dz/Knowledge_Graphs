@@ -1,0 +1,3 @@
+Graph schema (Neo4j Cypher):
+- Nodes: Department (department), Employee (age, feedback_score, gender, joining_date, name, productivity, project_completed, salary, satisfaction_rate), Position (position)
+- Relationships: (Employee)-[:HAS_ROLE]->(Position), (Employee)-[:WORKS_IN]->(Department)
