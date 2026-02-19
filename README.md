@@ -4,6 +4,8 @@ A project to build **graph and Cypher skills**, then add **natural language → 
 
 The full roadmap and checklist live in **[plan.md](plan.md)**. This README summarizes what the repo is about and how to run it.
 
+**Concept notes** (RAG vs Knowledge Graph, hybrid architecture, glossary) are in the **[notes/](notes/)** folder — useful for learning and for others who want to master the material.
+
 ---
 
 ## What This Repo Is About
@@ -45,6 +47,7 @@ Constraints ensure uniqueness on `Movie.movie_id`, `Person.name`, and `Genre.nam
 Knowledge_graph/
 ├── plan.md                    # Full learning plan and phase checklist
 ├── README.md                  # This file
+├── notes/                     # Concept notes (RAG vs KG, hybrid, glossary) — see notes/README.md
 └── phase1/
     ├── requirements.txt      # Python dependencies
     ├── data/

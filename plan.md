@@ -1,123 +1,210 @@
 # Knowledge Graph — Learning & Development Plan
 
-**Purpose:** Build graph and Cypher skills, then add NL→Cypher (Groq), then hybrid graph+vector. No shortcuts — proper engineering, interview-worthy.
+**Purpose:** Learn knowledge graph creation end-to-end: graph engineering → NL→Cypher → graph algorithms → KG design → LLM extraction → hybrid graph+vector (RAG) → agents/tools → one capstone project. No shortcuts — proper engineering, interview-worthy.
 
-**Dataset:** Custom movie dataset (`movie.csv`) — movie metadata with movie_id, movie_name, year, overview, director, genre (comma-separated), cast (comma-separated).  
-*No user ratings; graph is movie–genre–person (directors/actors).*
+**Your target:** End-to-end KG creation; integrate with **agents/tools**, **RAG**; build one **complete KG project**.
+
+**Dataset (Phases 1–2):** Custom movie dataset (`movie.csv`) — movie metadata. *Graph: Movie–Genre–Person (directors/actors).*
 
 ---
 
-## Phase 1 — No LLM (Pure Graph Foundation) ✅ Implemented
+## Roadmap at a Glance
 
-**Goal:** Understand graph modeling, learn Cypher, think in relationships, build something interview-worthy.
+| Phase | Focus | Outcome |
+|-------|--------|---------|
+| **1** | Pure graph foundation | Ingest pipeline, Cypher, constraints ✅ |
+| **2** | NL → Cypher (controlled) | Ask in English, validate, run on graph ✅ |
+| **3** | Graph engineering | Modeling, indexes, EXPLAIN/PROFILE |
+| **4** | Graph intelligence | GDS algorithms (PageRank, paths, community) |
+| **5** | KG design | Ontology, entity resolution, schema governance |
+| **6** | LLM for graph (extraction) | Text → entities/relationships → Neo4j |
+| **7** | Hybrid graph + vector (RAG) | Graph + vector store, RAG pipeline |
+| **8** | Agents & tools | LLM agent with graph tools (run Cypher, search) |
+| **9** | Capstone project | One end-to-end KG project (resume-worthy) |
 
-**Phase 1 implementation:** Python ingest pipeline; Neo4j; movie dataset with Movie, Genre, Person (directors/actors).
+---
 
-### Step 0 — Setup Environment
+## Phase 1 — Pure Graph Foundation ✅ Implemented
 
-- [x] **Install Neo4j** (Desktop or Docker)
-- [x] **Python env:** `phase1/requirements.txt` (neo4j, pandas, pydantic, pydantic-settings)
-- [x] **Config:** `.env` with `NEO4J_URI`, `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_DB` (see `.example.env`)
-- [ ] Open Neo4j Browser: `http://localhost:7474`
+**Goal:** Understand graph modeling, learn Cypher, think in relationships.
 
-### Step 1 — Dataset
+**Status:** Ingest pipeline + Movie/Genre/Person schema + constraints done. Complete remaining checkboxes when ready.
 
-- [x] **Used:** Custom movie dataset — `phase1/data/movie.csv`
-- **Columns:** `movie_id`, `movie_name`, `year`, `overview`, `director`, `genre` (comma-separated), `cast` (comma-separated)
+### Steps (summary)
 
-### Step 2 — Graph Schema (as implemented)
-
-**Nodes:** `Movie` (movie_id, name, year, overview), `Genre` (name), `Person` (name — used for directors and actors)  
-**Relationships:** `Movie -[:HAS_GENRE]-> Genre`, `Person -[:DIRECTED]-> Movie`, `Person -[:ACTED_IN]-> Movie`
-
-*Graph schema = meaning (entities + relationships), not columns/tables.*
-
-### Step 3 — Code Structure
-
-- [x] **core/config.py** — Settings from `.env` (Neo4j URI, user, password, db)
-- [x] **db/connection.py** — `Neo4jConnection` (execute Cypher with params)
-- [x] **models/movie.py** — `MovieModel` (Pydantic) for validation (movie_id, movie_name, year, overview, director, genre[], cast[])
-- [x] **graph/schema.py** — Cypher: constraints, CREATE_MOVIE, CREATE_GENRE_REL, CREATE_DIRECTOR_REL, CREATE_ACTOR_REL
-- [x] **ingest/load_data.py** — Read CSV, validate rows, create constraints, then for each row: create Movie, HAS_GENRE, DIRECTED, ACTED_IN
-- [x] **main.py** — Entry: `ingest_movies(path_to_movie.csv)`
-
-### Step 4 — Run Ingest
-
-- [ ] From `phase1/code`: set `.env`, then run:  
-  `python main.py` (uses `phase1/data/movie.csv` by default in main)
-- [ ] Verify: In Neo4j Browser — `MATCH (n) RETURN labels(n), count(n);` and `MATCH ()-[r]->() RETURN type(r), count(r);`
-
-### Step 5 — Constraints (in code)
-
-- [x] **Implemented in schema.py:**  
-  `Movie.movie_id` UNIQUE, `Person.name` UNIQUE, `Genre.name` UNIQUE  
-  (Created at start of ingest.)
-
-### Step 6 — Explore & Write Cypher Queries
-
-- [ ] Count nodes: `MATCH (n) RETURN labels(n), count(n);`
-- [ ] Count relationships: `MATCH ()-[r]->() RETURN type(r), count(r);`
-- [ ] **Example queries (movie-metadata graph):**
-  - Movies by genre: `MATCH (m:Movie)-[:HAS_GENRE]->(g:Genre {name: "Drama"}) RETURN m.name;`
-  - Movies by director: `MATCH (p:Person)-[:DIRECTED]->(m:Movie) WHERE p.name = $name RETURN m.name;`
-  - Co-actors: `MATCH (a:Person)-[:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(b:Person) WHERE a.name = $name AND a <> b RETURN b.name, count(m) ORDER BY count(m) DESC;`
-- [ ] **Target:** 10–15 Cypher queries (traversal, filters, aggregates)
-
-### Phase 1 Deliverables
-
-- [x] Neo4j + Python ingest pipeline; movie data loaded from `movie.csv`
-- [x] Schema: Movie, Genre, Person + HAS_GENRE, DIRECTED, ACTED_IN
-- [x] Constraints: Movie.movie_id, Person.name, Genre.name
-- [ ] 10–15 Cypher queries (by genre, director, cast, co-actors, etc.)
-- [ ] README: setup (.env, run main.py), schema, example queries
+- [x] Setup: Neo4j, Python env, `.env`, config, `db/connection.py`
+- [x] Schema: Movie, Genre, Person; HAS_GENRE, DIRECTED, ACTED_IN
+- [x] Ingest: `ingest/load_data.py`, constraints in `graph/schema.py`
+- [ ] Run ingest from `phase1/code`, verify in Neo4j Browser
+- [ ] **10–15 Cypher queries** (by genre, director, co-actors, aggregates)
+- [ ] README: setup, schema, example queries
 
 ### Phase 1 — DO NOT
 
-- No Groq / no LLM
-- No PDFs, no vector DB
-- First master Cypher on this schema
-
-### Suggested Timeline (Phase 1)
-
-- **Day 1:** Setup + dataset + ingest code (Steps 0–4)
-- **Day 2:** Explore graph + write 10–15 Cypher queries (Step 6)
-- **Day 3:** Clean-up, README (Step 6 + docs)
+- No LLM, no vector DB. Master Cypher first.
 
 ---
 
-## Phase 2 — Add Groq (NL → Cypher)
+## Phase 2 — NL → Cypher (Controlled) ✅ Implemented
 
-**Goal:** Natural language → Cypher; validate generated queries.
+**Goal:** Natural language → Cypher; validate and run safely.
 
-- [ ] Integrate Groq (or chosen LLM) to translate user questions to Cypher
-- [ ] Validate/sanitize generated Cypher before execution
-- [ ] Expose a simple interface (CLI or minimal API) for “ask in English, run on graph”
+- [x] Integrate LLM (Groq) to translate questions to Cypher
+- [x] Schema in prompt; read-only enforcement; validate before execution
+- [x] CLI: `ask.py` (direct), optional `ask_langchain.py` (LangChain path)
+- [ ] Optional: Add retry on invalid Cypher or tool-based validation
 
-*Start only after Phase 1 is solid (10–15 queries written by hand).*
-
----
-
-## Phase 3 — Advanced (Hybrid Graph + Vector)
-
-**Goal:** Combine graph with vector search; PDF ingestion.
-
-- [ ] Add vector store (e.g. for document chunks)
-- [ ] PDF ingestion pipeline
-- [ ] Hybrid: graph traversal + vector similarity where appropriate
-
-*Start only after Phase 2 NL→Cypher is working.*
+*Start only after Phase 1 is solid.*
 
 ---
 
-## Success Criteria (Phase 1)
+## Phase 3 — Graph Engineering (Strengthen Foundation)
 
-By end of Phase 1 you should be able to:
+**Goal:** Think like a graph architect; write efficient, explainable queries.
 
-- Model entities and relationships in graph terms (Movie, Genre, Person; HAS_GENRE, DIRECTED, ACTED_IN)
-- Run the Python ingest pipeline and load movie data into Neo4j
-- Traverse the graph (single and multi-hop: e.g. movies by genre, by director, co-actors)
-- Aggregate over paths (count, top directors, etc.)
-- Explain how graph thinking differs from SQL
-- Confidently write 10–15 Cypher queries on the movie graph
+**Suggested: ~2 weeks.**
 
-Then proceed to Phase 2 (NL → Cypher with Groq).
+### 3.1 Advanced graph modeling
+
+- [ ] **Learn:** When to use labels vs relationship types; property modeling; avoiding supernodes; many-to-many and temporal (e.g. `valid_from`, `valid_to`)
+- [ ] **Build 2 small domain graphs (by hand or small ingest):**
+  - Employee–Project–Department
+  - E-commerce: Product–Order–User
+- [ ] Add constraints, indexes, unique keys where appropriate
+
+### 3.2 Query optimization & profiling
+
+- [ ] **Learn:** `EXPLAIN`, `PROFILE` in Neo4j
+- [ ] **Understand:** Query plans, index usage, cardinality, bottlenecks
+- [ ] Run EXPLAIN/PROFILE on 3–5 of your Phase 1 Cypher queries and interpret results
+
+**Deliverable:** Document 2–3 optimizations (e.g. index added, query rewritten).
+
+---
+
+## Phase 4 — Graph Intelligence (Algorithms)
+
+**Goal:** Use the graph for analytics, not just storage.
+
+**Suggested: ~2 weeks.**
+
+- [ ] **Neo4j Graph Data Science (GDS):** Install/use GDS (or Neo4j Aura with GDS)
+- [ ] **Learn & apply:** PageRank, shortest path, community detection, similarity
+- [ ] **Apply to your data:** e.g. “influential” people in movie graph, “similar” movies, or small fraud/network demo
+- [ ] Document: which algorithm, what question it answers, one example result
+
+**Deliverable:** At least 2 algorithms run on your graph (or a small dedicated graph).
+
+---
+
+## Phase 5 — Knowledge Graph Design (Ontology & Quality)
+
+**Goal:** Design a proper KG: clear schema, entity resolution, governance.
+
+**Suggested: ~2 weeks.**
+
+### 5.1 Ontology basics
+
+- [ ] **Learn:** Entities, classes, relationships; controlled vocabularies; schema governance
+- [ ] **Design (on paper or in code):** Core entity types (e.g. Person, Organization, Event, Location, Product) and **allowed** relationship types
+- [ ] Rule: LLM and ingest must not create arbitrary relationship types; validate against schema
+
+### 5.2 Entity resolution
+
+- [ ] **Learn:** Duplicate names, spelling variations, same entity from multiple sources
+- [ ] **Implement or practice:** Matching/merging strategy (e.g. by name + rules, or simple embedding similarity) for at least one entity type
+- [ ] Document: how you avoid “broken” KG from duplicates
+
+**Deliverable:** Short ontology doc (or schema file) + one entity-resolution approach.
+
+---
+
+## Phase 6 — LLM for Graph (Extraction Pipeline)
+
+**Goal:** Turn unstructured text into graph data; don’t trust raw LLM output blindly.
+
+**Suggested: ~2 weeks.** *Depends on Phase 2 and 5.*
+
+- [ ] **Controlled NL→Cypher** (already in Phase 2): schema in prompt, read-only, validate. Harden if needed.
+- [ ] **LLM-based entity & relationship extraction:**
+  - Input: Text or document (e.g. news, job description)
+  - LLM extracts: entities, relationship types (from your ontology)
+  - **Validate** against schema; then merge into Neo4j
+- [ ] **Safety:** Never run raw LLM Cypher without validation; never merge raw entities without schema check
+
+**Deliverable:** One pipeline: text → LLM extraction → validation → Neo4j merge (even if small scale).
+
+---
+
+## Phase 7 — Hybrid Graph + Vector (RAG)
+
+**Goal:** Combine graph and vector search; build a RAG-style flow.
+
+**Suggested: ~2–3 weeks.** *After Phase 2 and basic vector familiarity.*
+
+- [ ] **Add vector store** (e.g. for document chunks or node descriptions)
+- [ ] **Optional:** PDF/document ingestion → chunks → embed → store
+- [ ] **Hybrid flow:** User question → graph query (structured) + vector similarity (semantic) → combine context → LLM answer
+- [ ] Implement one end-to-end path: question → graph + vector retrieval → single LLM response
+
+**Deliverable:** Working hybrid: at least one query type that uses both graph and vector.
+
+---
+
+## Phase 8 — Agents & Tools
+
+**Goal:** LLM agent that can use the graph via tools (run Cypher, search, etc.).
+
+**Suggested: ~2 weeks.** *After Phase 2 and optionally 7.*
+
+- [ ] **Define tools:** e.g. `run_cypher(query)`, `search_graph(natural_language_question)`, optionally `vector_search(question)`
+- [ ] **Implement agent:** Using LangChain/LangGraph (or similar) with these tools; agent decides when to call which tool
+- [ ] **Safety:** Tools should enforce read-only or approved operations; no raw user Cypher execution
+- [ ] Test: Multi-turn or multi-step question that requires 2+ tool calls
+
+**Deliverable:** One agent that answers a graph question by choosing and calling graph (and optionally vector) tools.
+
+---
+
+## Phase 9 — Capstone Project (End-to-End KG)
+
+**Goal:** One resume-worthy project: full KG lifecycle + query + (optional) RAG/agent.
+
+**Suggested: ~3–4 weeks.** *After at least Phases 1–2, 5–6, and ideally 7–8.*
+
+- [ ] **Pick one domain** (e.g. job recommendation, fraud detection, local intelligence, product knowledge)
+- [ ] **End-to-end:** Ingest (structured and/or LLM extraction) → schema + entity resolution → Neo4j
+- [ ] **Query layer:** NL→Cypher (and/or agent with tools)
+- [ ] **Optional:** Hybrid RAG or agent if you did Phases 7–8
+- [ ] **Document:** README, schema, example questions, design decisions
+
+**Example options:**
+
+1. **Job–Skill–Company KG:** Ingest jobs/skills; “find jobs matching my skills”; optional agent
+2. **Fraud/network KG:** Transactions + entities; detect clusters; rank risk; NL query or agent
+3. **Hyper-local intelligence:** Ingest news/docs; entities + locations; “trends near me” style queries
+
+**Deliverable:** One deployable or demo-able project + short write-up.
+
+---
+
+## Mindset
+
+- **Stop thinking:** “How can the LLM do everything?”
+- **Start thinking:** “How do I design a reliable graph system where the LLM is an assistant (query, extraction, answer) under my control?”
+
+---
+
+## Success Criteria (Overall)
+
+By the end of this plan you will have:
+
+- Built and queried graphs (Phases 1–2)
+- Optimized and analyzed them (Phases 3–4)
+- Designed a KG with ontology and entity resolution (Phase 5)
+- Used LLM for Cypher and for extraction (Phases 2, 6)
+- Combined graph + vector in a RAG-style pipeline (Phase 7)
+- Built an agent that uses graph (and optionally vector) tools (Phase 8)
+- Delivered one end-to-end KG project (Phase 9)
+
+**Next step from where you are:** Finish Phase 1 checkboxes (queries, README) if needed; then either deepen with **Phase 3 (graph engineering)** or **Phase 4 (algorithms)**. Phase 2 (NL→Cypher) is already in place.
