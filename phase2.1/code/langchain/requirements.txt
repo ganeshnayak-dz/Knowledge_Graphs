@@ -1,0 +1,4 @@
+# Add LangChain and Neo4j deps when you fill the code, e.g.:
+# langchain
+# langchain-neo4j
+# python-dotenv

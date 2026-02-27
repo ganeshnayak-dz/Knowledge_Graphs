@@ -1,0 +1,3 @@
+# Add Haystack and graph deps when you fill the code, e.g.:
+# haystack-ai
+# python-dotenv

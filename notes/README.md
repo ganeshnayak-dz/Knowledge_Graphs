@@ -8,6 +8,7 @@ This folder contains **concept notes** to support the [Knowledge Graph learning 
 
 | Note | What it covers |
 |------|----------------|
+| [Decision Guide (flowchart)](decision-guide.md) | **When to use KG vs RAG vs neither** — flowchart (Mermaid) + short narrative. Draft; refine as you learn. |
 | [RAG vs Knowledge Graph](rag-vs-knowledge-graph.md) | RAG and Knowledge Graphs are not competitors. When to use each, pros/cons, and why hybrid systems use both. |
 | [Hybrid Architecture](hybrid-architecture.md) | Graph + vector + LLM flow; how it fits the repo’s phases (including RAG and agents). |
 | [Glossary](glossary.md) | Short definitions for terms used in the plan and codebase. |

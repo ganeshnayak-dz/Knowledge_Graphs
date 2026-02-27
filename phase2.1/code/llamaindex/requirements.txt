@@ -1,0 +1,4 @@
+# Add LlamaIndex and graph deps when you fill the code, e.g.:
+# llama-index
+# llama-index-graph-stores-neo4j
+# python-dotenv
