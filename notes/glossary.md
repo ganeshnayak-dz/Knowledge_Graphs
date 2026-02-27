@@ -15,6 +15,13 @@ Short definitions for concepts in the [plan](../plan.md) and codebase. Useful wh
 
 ---
 
+## Ingestion & pipelines
+
+- **Ingestion** — Getting data into the graph. **Manual ingestion**: structured data (CSV, JSON) → your code runs Cypher (e.g. MERGE). **LLM-based ingestion**: unstructured text → LLM extracts entities/relations → you validate and merge. See [ingestion-manual-vs-llm.md](ingestion-manual-vs-llm.md).
+- **Chain (LangChain)** — A pre-built pipeline (e.g. `GraphCypherQAChain`) that does multiple steps (prompt → LLM → Cypher → run on graph → answer). “Using the framework” = using such chains. See [langchain-framework-and-usage.md](langchain-framework-and-usage.md).
+
+---
+
 ## LLM & retrieval
 
 - **RAG (Retrieval-Augmented Generation)** — Pattern: retrieve relevant text (e.g. via vector search), then pass it to an LLM to generate an answer. Works on unstructured text.
