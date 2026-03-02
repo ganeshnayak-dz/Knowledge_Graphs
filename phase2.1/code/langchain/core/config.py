@@ -1,4 +1,6 @@
-"""Configuration (Neo4j, API keys, paths). Fill as you learn."""
+"""Configuration (Neo4j, API keys, paths). Loaded from .env; keys are UPPER_SNAKE (e.g. NEO4J_URI)."""
+from typing import Optional
+
 from pydantic_settings import BaseSettings
 
 

@@ -40,13 +40,14 @@ Dependencies: `langchain`, `langchain_community`, `langchain_neoj`, `langchain_g
 | Place | Purpose |
 |-------|---------|
 | **`core/config.py`** | Env/settings only. No LangChain imports. |
-| **`llm/providers/groq.py`** | LangChain `ChatGroq`; can implement your `LLMProvider` protocol via `invoke()`. |
-| **`llm/__init__.py`** | Expose `get_llm()` (for custom use) and optionally `get_llm_for_chain()` returning the raw LangChain model for the chain. |
-| **`graph/connection.py`** | Create and expose `Neo4jGraph` (e.g. `get_graph()`). Single place that creates the graph client. |
-| **Chain usage** | One module (e.g. `nl2cypher/chain.py`) builds `GraphCypherQAChain.from_llm(get_llm_for_chain(), get_graph(), ...)` and exposes `ask_graph(question)`. |
+| **`db/connection.py`** | **Single place for Neo4j:** `get_neo4j_connection()` for ingest; `get_graph()` → `Neo4jGraph` for chains. Same config for both. |
+| **`graph/schema.py`** | Schema and Cypher templates. No connection logic. |
+| **`llm/providers/groq.py`** | LangChain `ChatGroq`; implements `LLMProvider` for custom use. |
+| **`llm/__init__.py`** | Expose `get_llm()` and `get_llm_for_chain()` (raw LangChain model for the chain). |
+| **`nl2cypher/chain.py`** | Builds `GraphCypherQAChain.from_llm(get_llm_for_chain(), get_graph(), ...)`; `get_graph()` from `db.connection`. Exposes `ask_graph(question)`. |
 | **`ask.py`** | Thin CLI: parse question, call `ask_graph(question)`, print result. |
 
-Ingestion (CSV → graph) stays **manual**: `ingest/load_data.py` parses data, `graph/builder.py` runs Cypher MERGEs. No chain involved there.
+Ingestion (CSV → graph) stays **manual**: `ingest/load_data.py` parses data, uses `get_neo4j_connection()` and `graph.schema` to run Cypher MERGEs. No chain involved.
 
 ---
 

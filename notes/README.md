@@ -13,6 +13,7 @@ This folder contains **concept notes** to support the [Knowledge Graph learning 
 | [Hybrid Architecture](hybrid-architecture.md) | Graph + vector + LLM flow; how it fits the repo’s phases (including RAG and agents). |
 | [LangChain: framework vs custom](langchain-framework-and-usage.md) | What “using the LangChain framework” means; chain (e.g. GraphCypherQAChain) vs custom pipeline; where things go in phase2.1. |
 | [Ingestion: manual vs LLM](ingestion-manual-vs-llm.md) | When ingestion is manual (structured data) vs LLM-based (unstructured text); when to use which. |
+| [Phase 2.1 tips](phase2.1-tips.md) | **What I learnt:** one connection module (two entry points), when to use raw vs graph, framework vs custom, folder layout. |
 | [Glossary](glossary.md) | Short definitions for terms used in the plan and codebase. |
 
 ---

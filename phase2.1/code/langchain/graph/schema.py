@@ -1,5 +1,9 @@
-"""Graph schema (labels, relationship types, constraints). Fill as you learn."""
-CREATE_CONSTRAINS = [
+"""Graph schema: labels, relationship types, and Cypher for Movie/Genre/Person.
+
+Used by ingest (constraints + MERGE templates). NL→Cypher chain gets schema from Neo4j (or APOC).
+"""
+# ----- Constraints (run once before ingest) -----
+CREATE_CONSTRAINTS = [
     """
     CREATE CONSTRAINT movie_id IF NOT EXISTS
     FOR (m:Movie) REQUIRE m.movie_id IS UNIQUE
@@ -14,9 +18,8 @@ CREATE_CONSTRAINS = [
     """
 ]
 
-
-# Queries
-CREATE_MOVIE="""
+# ----- MERGE templates (used per row in ingest) -----
+CREATE_MOVIE = """
 MERGE (m:Movie {movie_id:$movie_id})
 SET m.name=$movie_name,
 m.year=$year,

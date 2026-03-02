@@ -1,7 +1,13 @@
-# Add LangChain and Neo4j deps when you fill the code, e.g.:
+# LangChain and Neo4j
 langchain
+langchain-community
 langchain-neo4j
-python-dotenv
 langchain-groq
+# Neo4j driver (for db.connection ingest)
+neo4j
+# Config and models
+python-dotenv
 pydantic
 pydantic-settings
+# Ingest
+pandas
